@@ -63,6 +63,7 @@ import {
 } from './types';
 import { StepVisualizer } from './components/visualizers';
 import { resolveTaskEngineModeFromOutlineDoneEvent } from './vocational-mode';
+import { withRetry } from '@/lib/generation/retry';
 
 const log = createLogger('GenerationPreview');
 const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 2500;
@@ -485,7 +486,8 @@ function GenerationPreviewContent() {
         const wsSettings = useSettingsStore.getState();
         const wsProviderId = wsSettings.webSearchProviderId;
         const wsConfig = wsSettings.webSearchProvidersConfig?.[wsProviderId];
-        const res = await fetch('/api/web-search', {
+        const res = await withRetry(async () => {
+          const response = await fetch('/api/web-search', {
           method: 'POST',
           headers: getApiHeaders(),
           body: JSON.stringify(
@@ -500,6 +502,18 @@ function GenerationPreviewContent() {
             }),
           ),
           signal,
+          });
+          if (!response.ok && (response.status === 429 || response.status >= 500)) {
+            throw Object.assign(new Error(`Web search temporary failure (${response.status})`), { status: response.status });
+          }
+          return response;
+        }, {
+          signal,
+          maxRetries: 2,
+          shouldRetry: (failure) => {
+            if (isAbortError(failure)) return false;
+            return failure instanceof TypeError || (failure as { status?: number })?.status === 429 || ((failure as { status?: number })?.status ?? 0) >= 500;
+          },
         });
 
         if (!res.ok) {
