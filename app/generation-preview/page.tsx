@@ -1045,7 +1045,9 @@ function GenerationPreviewContent() {
       const firstOutline = outlines[0];
 
       // Step 2: Generate content (currentStepIndex is already 2)
-      const contentData = await fetchSceneContent(
+      const contentData = currentSession.generatedFirstSceneContent
+        ? { success: true as const, content: currentSession.generatedFirstSceneContent as never }
+        : await fetchSceneContent(
         {
           outline: firstOutline,
           allOutlines: outlines,
@@ -1059,7 +1061,7 @@ function GenerationPreviewContent() {
         },
         signal,
         FOREGROUND_SCENE_RETRY_OPTIONS,
-      );
+          );
 
       if (!contentData.success || !contentData.content) {
         throw new Error(sceneGenerationErrorMessage(contentData));
@@ -1071,7 +1073,9 @@ function GenerationPreviewContent() {
       const actionsStepIdx = activeSteps.findIndex((s) => s.id === 'actions');
       activateStep(activeSteps, actionsStepIdx >= 0 ? actionsStepIdx : currentStepIndex + 1);
 
-      const data = await fetchSceneActions(
+      const data = currentSession.generatedFirstScene
+        ? { success: true as const, scene: currentSession.generatedFirstScene as never }
+        : await fetchSceneActions(
         {
           outline: contentData.effectiveOutline || firstOutline,
           allOutlines: outlines,
@@ -1084,7 +1088,7 @@ function GenerationPreviewContent() {
         },
         signal,
         FOREGROUND_SCENE_RETRY_OPTIONS,
-      );
+          );
 
       if (!data.success || !data.scene) {
         throw new Error(sceneGenerationErrorMessage(data));
