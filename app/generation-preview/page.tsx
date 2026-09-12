@@ -1106,6 +1106,7 @@ function GenerationPreviewContent() {
           settings.ttsProvidersConfig?.[settings.ttsProviderId],
         )
       ) {
+        updateStepState('tts', { status: 'running', attempt: (stepStates.tts?.attempt ?? 0) + 1 });
         const ttsResult = await generateTTSForScene(
           firstScene,
           languageDirective,
@@ -1113,6 +1114,9 @@ function GenerationPreviewContent() {
           FOREGROUND_SCENE_RETRY_OPTIONS,
         );
         if (!ttsResult.success) throw new Error(t('generation.speechFailed'));
+        updateStepState('tts', { status: 'done' });
+      } else {
+        updateStepState('tts', { status: 'skipped' });
       }
 
       // Add scene to store and navigate
