@@ -122,10 +122,11 @@ function GenerationPreviewContent() {
     createGenerationStepStates(ALL_STEPS),
   );
   const updateStepState = (stepId: string, patch: Partial<GenerationStepStates[string]>) =>
-    setStepStates((states) => ({
-      ...states,
-      [stepId]: { ...states[stepId], ...patch },
-    }));
+    setStepStates((states) => {
+      const next = { ...states, [stepId]: { ...states[stepId], ...patch } };
+      if (session) sessionStorage.setItem('generationSession', JSON.stringify({ ...session, previewStepStates: next }));
+      return next;
+    });
   const activateStep = (steps: typeof ALL_STEPS, index: number) => {
     const next = steps[index];
     if (!next) return;
@@ -261,6 +262,7 @@ function GenerationPreviewContent() {
         }
         parsed.taskEngineMode = parsed.taskEngineMode === true;
         setSession(parsed);
+        if (parsed.previewStepStates) setStepStates(parsed.previewStepStates);
       } catch (e) {
         log.error('Failed to parse generation session:', e);
       }
