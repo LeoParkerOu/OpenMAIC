@@ -811,7 +811,13 @@ function GenerationPreviewContent() {
         persona?: string;
       }> = [];
 
-      if (settings.agentMode === 'auto') {
+      if (currentSession.generatedAgents?.length) {
+        agents = currentSession.generatedAgents;
+        setGeneratedAgents(currentSession.generatedAgents as typeof generatedAgents);
+        updateStepState('agent-generation', { status: 'done' });
+      }
+
+      if (settings.agentMode === 'auto' && agents.length === 0) {
         const agentStepIdx = activeSteps.findIndex((s) => s.id === 'agent-generation');
         if (agentStepIdx >= 0) activateStep(activeSteps, agentStepIdx);
 

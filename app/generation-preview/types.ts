@@ -8,6 +8,16 @@ import type {
   SessionDocumentSource,
 } from '@/lib/types/generation';
 
+export type GeneratedAgent = {
+  id: string;
+  name: string;
+  role: string;
+  persona?: string;
+  avatar?: string;
+  color?: string;
+  priority?: number;
+};
+
 // Session state stored in sessionStorage
 export interface GenerationSessionState {
   sessionId: string;
@@ -41,7 +51,7 @@ export interface GenerationSessionState {
   // Server-effective vocational mode from the outline generation done event.
   taskEngineMode?: boolean;
   previewStepStates?: GenerationStepStates;
-  generatedAgents?: Array<Record<string, unknown>>;
+  generatedAgents?: GeneratedAgent[];
 }
 
 export type GenerationStep = {
