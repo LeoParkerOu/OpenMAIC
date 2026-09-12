@@ -50,6 +50,23 @@ export type GenerationStep = {
   type: 'analysis' | 'writing' | 'visual';
 };
 
+export type GenerationStepStatus = 'idle' | 'running' | 'retrying' | 'failed' | 'done' | 'skipped';
+
+export type GenerationStepState = {
+  status: GenerationStepStatus;
+  attempt: number;
+  maxAttempts: number;
+  error?: string;
+};
+
+export type GenerationStepStates = Record<string, GenerationStepState>;
+
+export function createGenerationStepStates(steps: GenerationStep[], maxAttempts = 3): GenerationStepStates {
+  return Object.fromEntries(
+    steps.map((step) => [step.id, { status: 'idle', attempt: 0, maxAttempts }]),
+  );
+}
+
 const MEDIA_EXTENSIONS = new Set(['mp4', 'mkv', 'avi', 'mov', 'wmv', 'mp3', 'wav', 'aac', 'm4a']);
 
 /** True when the uploaded material is audio/video (extraction is transcription). */
