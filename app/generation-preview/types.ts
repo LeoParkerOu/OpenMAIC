@@ -52,6 +52,8 @@ export interface GenerationSessionState {
   taskEngineMode?: boolean;
   previewStepStates?: GenerationStepStates;
   generatedAgents?: GeneratedAgent[];
+  generatedFirstSceneContent?: unknown;
+  generatedFirstScene?: unknown;
 }
 
 export type GenerationStep = {

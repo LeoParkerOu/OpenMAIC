@@ -1063,6 +1063,8 @@ function GenerationPreviewContent() {
       if (!contentData.success || !contentData.content) {
         throw new Error(sceneGenerationErrorMessage(contentData));
       }
+      currentSession = { ...currentSession, generatedFirstSceneContent: contentData.content };
+      persistSession(currentSession);
 
       // Generate actions (activate actions step indicator)
       const actionsStepIdx = activeSteps.findIndex((s) => s.id === 'actions');
@@ -1087,6 +1089,8 @@ function GenerationPreviewContent() {
         throw new Error(sceneGenerationErrorMessage(data));
       }
       const firstScene = data.scene;
+      currentSession = { ...currentSession, generatedFirstScene: firstScene };
+      persistSession(currentSession);
 
       // Generate TTS for first scene (part of actions step — blocking)
       if (
