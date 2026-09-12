@@ -24,6 +24,20 @@ describe('withRetry', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('supports HTTP-style transient filtering without retrying client errors', async () => {
+    const transient = Object.assign(new Error('server'), { status: 503 });
+    const permanent = Object.assign(new Error('bad request'), { status: 400 });
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    const transientFn = vi.fn().mockRejectedValueOnce(transient).mockResolvedValue('ok');
+    await expect(withRetry(transientFn, { sleep, shouldRetry: (e) => {
+      const status = (e as { status?: number }).status;
+      return status === 429 || (status !== undefined && status >= 500);
+    }})).resolves.toBe('ok');
+    const permanentFn = vi.fn().mockRejectedValue(permanent);
+    await expect(withRetry(permanentFn, { sleep, shouldRetry: (e) => ((e as { status?: number }).status ?? 0) >= 500 })).rejects.toBe(permanent);
+    expect(permanentFn).toHaveBeenCalledTimes(1);
+  });
+
   it('does not start work after cancellation', async () => {
     const controller = new AbortController();
     controller.abort();
