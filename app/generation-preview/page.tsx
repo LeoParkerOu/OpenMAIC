@@ -510,7 +510,7 @@ function GenerationPreviewContent() {
 
       // Step: Web Search (if enabled)
       const webSearchStepIdx = activeSteps.findIndex((s) => s.id === 'web-search');
-      if (currentSession.requirements.webSearch && webSearchStepIdx >= 0) {
+      if (currentSession.requirements.webSearch && webSearchStepIdx >= 0 && !currentSession.researchContext) {
         updateStepState('web-search', {
           status: 'running',
           attempt: stepStates['web-search'].attempt + 1,
@@ -620,6 +620,7 @@ function GenerationPreviewContent() {
 
       const outlineStepIdx = activeSteps.findIndex((s) => s.id === 'outline');
       activateStep(activeSteps, outlineStepIdx >= 0 ? outlineStepIdx : 0);
+      if (outlines?.length) updateStepState('outline', { status: 'done' });
       if (!outlines || outlines.length === 0) {
         log.debug('=== Generating outlines (SSE) ===');
         setStreamingOutlines([]);
