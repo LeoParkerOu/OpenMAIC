@@ -1484,6 +1484,21 @@ function GenerationPreviewContent() {
                   </motion.div>
                 </AnimatePresence>
 
+                <div className="mx-auto w-full max-w-sm space-y-1 text-left">
+                  {activeSteps.map((step) => {
+                    const state = stepStates[step.id];
+                    if (!state || state.status === 'idle') return null;
+                    return (
+                      <div key={step.id} className="flex items-center justify-between rounded px-2 py-1 text-xs text-muted-foreground">
+                        <span>{t(step.title)}</span>
+                        <span className={state.status === 'failed' ? 'text-red-500' : state.status === 'retrying' ? 'text-amber-500' : 'text-muted-foreground'}>
+                          {state.status === 'failed' ? state.error : state.status === 'retrying' ? `Retry ${state.attempt}/${state.maxAttempts}` : state.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
                 {/* Truncation warning indicator */}
                 <AnimatePresence>
                   {truncationWarnings.length > 0 && !error && !isComplete && (
