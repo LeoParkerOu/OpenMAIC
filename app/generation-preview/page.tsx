@@ -121,6 +121,11 @@ function GenerationPreviewContent() {
   const [stepStates, setStepStates] = useState<GenerationStepStates>(() =>
     createGenerationStepStates(ALL_STEPS),
   );
+  const updateStepState = (stepId: string, patch: Partial<GenerationStepStates[string]>) =>
+    setStepStates((states) => ({
+      ...states,
+      [stepId]: { ...states[stepId], ...patch },
+    }));
   const [isComplete] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [streamingOutlines, setStreamingOutlines] = useState<SceneOutline[] | null>(null);
@@ -479,7 +484,7 @@ function GenerationPreviewContent() {
       // Step: Web Search (if enabled)
       const webSearchStepIdx = activeSteps.findIndex((s) => s.id === 'web-search');
       if (currentSession.requirements.webSearch && webSearchStepIdx >= 0) {
-        setStepStates((s) => ({ ...s, 'web-search': { ...s['web-search'], status: 'running', attempt: s['web-search'].attempt + 1 } }));
+        updateStepState('web-search', { status: 'running', attempt: stepStates['web-search'].attempt + 1, error: undefined });
         setCurrentStepIndex(webSearchStepIdx);
         setWebSearchSources([]);
 
@@ -537,6 +542,7 @@ function GenerationPreviewContent() {
         sessionStorage.setItem('generationSession', JSON.stringify(updatedSessionWithSearch));
         currentSession = updatedSessionWithSearch;
         activeSteps = getActiveSteps(currentSession);
+        updateStepState('web-search', { status: 'done' });
       }
 
       // Load imageMapping early (needed for both outline and scene generation).
