@@ -340,6 +340,7 @@ function GenerationPreviewContent() {
       const hasPdfToAnalyze = documentSources.length > 0 && !currentSession.pdfText;
       // If no document to analyze, skip to the next available step
       if (!hasPdfToAnalyze) {
+        updateStepState('pdf-analysis', { status: 'skipped' });
         const firstNonPdfIdx = activeSteps.findIndex((s) => s.id !== 'pdf-analysis');
         setCurrentStepIndex(Math.max(0, firstNonPdfIdx));
       }
@@ -479,6 +480,7 @@ function GenerationPreviewContent() {
         // Reassign local reference for subsequent steps
         currentSession = updatedSession;
         activeSteps = getActiveSteps(currentSession);
+        updateStepState('pdf-analysis', { status: 'done' });
       }
 
       // Step: Web Search (if enabled)
