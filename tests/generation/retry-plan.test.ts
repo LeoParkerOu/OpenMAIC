@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isSafeToAutoRetry, stepsToRetry, retrySessionFields } from '@/lib/generation/retry-plan';
+import { isSafeToAutoRetry, stepsToRetry, retrySessionFields, completedCheckpointSteps } from '@/lib/generation/retry-plan';
 
 describe('stepsToRetry', () => {
   const active = ['pdf-analysis', 'web-search', 'outline', 'agent-generation', 'slide-content', 'actions', 'tts'] as const;
@@ -14,5 +14,8 @@ describe('stepsToRetry', () => {
   });
   it('invalidates the failed step and downstream results only', () => {
     expect(retrySessionFields('outline')).toEqual(['agent-generation', 'slide-content', 'actions', 'tts', 'outline']);
+  });
+  it('identifies reusable checkpoints without treating TTS as complete', () => {
+    expect(completedCheckpointSteps({ pdfText: 'doc', researchContext: 'web', sceneOutlines: [{}], generatedAgents: [{}], generatedFirstSceneContent: {}, generatedFirstScene: {} })).toEqual(['pdf-analysis', 'web-search', 'outline', 'agent-generation', 'slide-content', 'actions']);
   });
 });
