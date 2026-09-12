@@ -1,0 +1,22 @@
+export type RetryStep = 'pdf-analysis' | 'web-search' | 'outline' | 'agent-generation' | 'slide-content' | 'actions' | 'tts';
+
+const DEPENDENTS: Record<RetryStep, readonly RetryStep[]> = {
+  'pdf-analysis': ['web-search', 'outline', 'agent-generation', 'slide-content', 'actions', 'tts'],
+  'web-search': ['outline', 'agent-generation', 'slide-content', 'actions', 'tts'],
+  outline: ['agent-generation', 'slide-content', 'actions', 'tts'],
+  'agent-generation': ['slide-content', 'actions', 'tts'],
+  'slide-content': ['actions', 'tts'],
+  actions: ['tts'],
+  tts: [],
+};
+
+/** Returns the minimum suffix that must be regenerated after a step fails. */
+export function stepsToRetry(failed: RetryStep, active: readonly RetryStep[]): RetryStep[] {
+  const affected = new Set<RetryStep>([failed, ...DEPENDENTS[failed]]);
+  return active.filter((step) => affected.has(step));
+}
+
+/** These operations must never be automatically replayed after partial output. */
+export function isSafeToAutoRetry(step: RetryStep): boolean {
+  return step === 'pdf-analysis' || step === 'web-search';
+}
