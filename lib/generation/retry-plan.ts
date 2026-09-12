@@ -1,4 +1,11 @@
-export type RetryStep = 'pdf-analysis' | 'web-search' | 'outline' | 'agent-generation' | 'slide-content' | 'actions' | 'tts';
+export type RetryStep =
+  | 'pdf-analysis'
+  | 'web-search'
+  | 'outline'
+  | 'agent-generation'
+  | 'slide-content'
+  | 'actions'
+  | 'tts';
 
 const DEPENDENTS: Record<RetryStep, readonly RetryStep[]> = {
   'pdf-analysis': ['web-search', 'outline', 'agent-generation', 'slide-content', 'actions', 'tts'],

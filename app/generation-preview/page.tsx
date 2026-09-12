@@ -124,7 +124,11 @@ function GenerationPreviewContent() {
   const updateStepState = (stepId: string, patch: Partial<GenerationStepStates[string]>) =>
     setStepStates((states) => {
       const next = { ...states, [stepId]: { ...states[stepId], ...patch } };
-      if (session) sessionStorage.setItem('generationSession', JSON.stringify({ ...session, previewStepStates: next }));
+      if (session)
+        sessionStorage.setItem(
+          'generationSession',
+          JSON.stringify({ ...session, previewStepStates: next }),
+        );
       return next;
     });
   const activateStep = (steps: typeof ALL_STEPS, index: number) => {
@@ -263,7 +267,8 @@ function GenerationPreviewContent() {
         parsed.taskEngineMode = parsed.taskEngineMode === true;
         setSession(parsed);
         if (parsed.previewStepStates) setStepStates(parsed.previewStepStates);
-        if (parsed.generatedAgents) setGeneratedAgents(parsed.generatedAgents as typeof generatedAgents);
+        if (parsed.generatedAgents)
+          setGeneratedAgents(parsed.generatedAgents as typeof generatedAgents);
       } catch (e) {
         log.error('Failed to parse generation session:', e);
       }
@@ -510,7 +515,11 @@ function GenerationPreviewContent() {
 
       // Step: Web Search (if enabled)
       const webSearchStepIdx = activeSteps.findIndex((s) => s.id === 'web-search');
-      if (currentSession.requirements.webSearch && webSearchStepIdx >= 0 && !currentSession.researchContext) {
+      if (
+        currentSession.requirements.webSearch &&
+        webSearchStepIdx >= 0 &&
+        !currentSession.researchContext
+      ) {
         updateStepState('web-search', {
           status: 'running',
           attempt: stepStates['web-search'].attempt + 1,
@@ -1048,19 +1057,19 @@ function GenerationPreviewContent() {
       const contentData = currentSession.generatedFirstSceneContent
         ? { success: true as const, content: currentSession.generatedFirstSceneContent as never }
         : await fetchSceneContent(
-        {
-          outline: firstOutline,
-          allOutlines: outlines,
-          pdfImages: currentSession.pdfImages,
-          imageMapping,
-          stageInfo,
-          stageId: stage.id,
-          agents,
-          languageDirective,
-          requirements: currentSession.requirements,
-        },
-        signal,
-        FOREGROUND_SCENE_RETRY_OPTIONS,
+            {
+              outline: firstOutline,
+              allOutlines: outlines,
+              pdfImages: currentSession.pdfImages,
+              imageMapping,
+              stageInfo,
+              stageId: stage.id,
+              agents,
+              languageDirective,
+              requirements: currentSession.requirements,
+            },
+            signal,
+            FOREGROUND_SCENE_RETRY_OPTIONS,
           );
 
       if (!contentData.success || !contentData.content) {
@@ -1076,18 +1085,18 @@ function GenerationPreviewContent() {
       const data = currentSession.generatedFirstScene
         ? { success: true as const, scene: currentSession.generatedFirstScene as never }
         : await fetchSceneActions(
-        {
-          outline: contentData.effectiveOutline || firstOutline,
-          allOutlines: outlines,
-          content: contentData.content,
-          stageId: stage.id,
-          agents,
-          previousSpeeches: [],
-          userProfile,
-          languageDirective,
-        },
-        signal,
-        FOREGROUND_SCENE_RETRY_OPTIONS,
+            {
+              outline: contentData.effectiveOutline || firstOutline,
+              allOutlines: outlines,
+              content: contentData.content,
+              stageId: stage.id,
+              agents,
+              previousSpeeches: [],
+              userProfile,
+              languageDirective,
+            },
+            signal,
+            FOREGROUND_SCENE_RETRY_OPTIONS,
           );
 
       if (!data.success || !data.scene) {
@@ -1668,7 +1677,12 @@ function GenerationPreviewContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-xs"
               >
-                <Button size="lg" variant="outline" className="w-full h-12" onClick={retryFailedStep}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full h-12"
+                  onClick={retryFailedStep}
+                >
                   {t('generation.goBackAndRetry')}
                 </Button>
               </motion.div>

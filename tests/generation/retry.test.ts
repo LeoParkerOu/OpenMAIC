@@ -29,12 +29,22 @@ describe('withRetry', () => {
     const permanent = Object.assign(new Error('bad request'), { status: 400 });
     const sleep = vi.fn().mockResolvedValue(undefined);
     const transientFn = vi.fn().mockRejectedValueOnce(transient).mockResolvedValue('ok');
-    await expect(withRetry(transientFn, { sleep, shouldRetry: (e) => {
-      const status = (e as { status?: number }).status;
-      return status === 429 || (status !== undefined && status >= 500);
-    }})).resolves.toBe('ok');
+    await expect(
+      withRetry(transientFn, {
+        sleep,
+        shouldRetry: (e) => {
+          const status = (e as { status?: number }).status;
+          return status === 429 || (status !== undefined && status >= 500);
+        },
+      }),
+    ).resolves.toBe('ok');
     const permanentFn = vi.fn().mockRejectedValue(permanent);
-    await expect(withRetry(permanentFn, { sleep, shouldRetry: (e) => ((e as { status?: number }).status ?? 0) >= 500 })).rejects.toBe(permanent);
+    await expect(
+      withRetry(permanentFn, {
+        sleep,
+        shouldRetry: (e) => ((e as { status?: number }).status ?? 0) >= 500,
+      }),
+    ).rejects.toBe(permanent);
     expect(permanentFn).toHaveBeenCalledTimes(1);
   });
 
