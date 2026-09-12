@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isSafeToAutoRetry, stepsToRetry } from '@/lib/generation/retry-plan';
+import { isSafeToAutoRetry, stepsToRetry, retrySessionFields } from '@/lib/generation/retry-plan';
 
 describe('stepsToRetry', () => {
   const active = ['pdf-analysis', 'web-search', 'outline', 'agent-generation', 'slide-content', 'actions', 'tts'] as const;
@@ -11,5 +11,8 @@ describe('stepsToRetry', () => {
     expect(isSafeToAutoRetry('web-search')).toBe(true);
     expect(isSafeToAutoRetry('outline')).toBe(false);
     expect(isSafeToAutoRetry('tts')).toBe(false);
+  });
+  it('invalidates the failed step and downstream results only', () => {
+    expect(retrySessionFields('outline')).toEqual(['agent-generation', 'slide-content', 'actions', 'tts', 'outline']);
   });
 });

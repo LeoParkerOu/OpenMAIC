@@ -20,3 +20,7 @@ export function stepsToRetry(failed: RetryStep, active: readonly RetryStep[]): R
 export function isSafeToAutoRetry(step: RetryStep): boolean {
   return step === 'pdf-analysis' || step === 'web-search';
 }
+
+export function retrySessionFields(failed: RetryStep): string[] {
+  return [...DEPENDENTS[failed], failed];
+}
