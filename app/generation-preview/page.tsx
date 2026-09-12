@@ -58,6 +58,8 @@ import {
   ALL_STEPS,
   getActiveSteps,
   getGenerationStepText,
+  createGenerationStepStates,
+  type GenerationStepStates,
 } from './types';
 import { StepVisualizer } from './components/visualizers';
 import { resolveTaskEngineModeFromOutlineDoneEvent } from './vocational-mode';
@@ -115,6 +117,9 @@ function GenerationPreviewContent() {
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [stepStates, setStepStates] = useState<GenerationStepStates>(() =>
+    createGenerationStepStates(ALL_STEPS),
+  );
   const [isComplete] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [streamingOutlines, setStreamingOutlines] = useState<SceneOutline[] | null>(null);
@@ -317,6 +322,7 @@ function GenerationPreviewContent() {
     let currentSession = generationSession;
 
     setError(null);
+    setStepStates(createGenerationStepStates(ALL_STEPS));
     setCurrentStepIndex(0);
 
     try {
@@ -334,6 +340,7 @@ function GenerationPreviewContent() {
 
       // Step 0: Extract uploaded course material if needed
       if (hasPdfToAnalyze) {
+        setStepStates((s) => ({ ...s, 'pdf-analysis': { ...s['pdf-analysis'], status: 'running', attempt: s['pdf-analysis'].attempt + 1 } }));
         log.debug('=== Generation Preview: Extracting course material bundle ===');
         validateDocumentSources(documentSources, t);
         const sortedDocumentSources = [...documentSources].sort((a, b) => a.order - b.order);
@@ -471,6 +478,7 @@ function GenerationPreviewContent() {
       // Step: Web Search (if enabled)
       const webSearchStepIdx = activeSteps.findIndex((s) => s.id === 'web-search');
       if (currentSession.requirements.webSearch && webSearchStepIdx >= 0) {
+        setStepStates((s) => ({ ...s, 'web-search': { ...s['web-search'], status: 'running', attempt: s['web-search'].attempt + 1 } }));
         setCurrentStepIndex(webSearchStepIdx);
         setWebSearchSources([]);
 
@@ -1058,6 +1066,10 @@ function GenerationPreviewContent() {
         return;
       }
       sessionStorage.removeItem('generationSession');
+      setStepStates((s) => {
+        const step = activeSteps[Math.min(currentStepIndex, activeSteps.length - 1)];
+        return step ? { ...s, [step.id]: { ...s[step.id], status: 'failed', error: err instanceof Error ? err.message : String(err) } } : s;
+      });
       setError(err instanceof Error ? err.message : String(err));
     }
   };
