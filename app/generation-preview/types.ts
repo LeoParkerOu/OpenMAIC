@@ -41,6 +41,7 @@ export interface GenerationSessionState {
   // Server-effective vocational mode from the outline generation done event.
   taskEngineMode?: boolean;
   previewStepStates?: GenerationStepStates;
+  generatedAgents?: Array<Record<string, unknown>>;
 }
 
 export type GenerationStep = {

@@ -263,6 +263,7 @@ function GenerationPreviewContent() {
         parsed.taskEngineMode = parsed.taskEngineMode === true;
         setSession(parsed);
         if (parsed.previewStepStates) setStepStates(parsed.previewStepStates);
+        if (parsed.generatedAgents) setGeneratedAgents(parsed.generatedAgents as typeof generatedAgents);
       } catch (e) {
         log.error('Failed to parse generation session:', e);
       }
@@ -949,6 +950,8 @@ function GenerationPreviewContent() {
 
           // Show card-reveal modal, continue generation once all cards are revealed
           setGeneratedAgents(agentData.agents);
+          currentSession = { ...currentSession, generatedAgents: agentData.agents };
+          persistSession(currentSession);
           setShowAgentReveal(true);
           await new Promise<void>((resolve) => {
             agentRevealResolveRef.current = resolve;
