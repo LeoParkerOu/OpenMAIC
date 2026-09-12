@@ -1355,8 +1355,12 @@ function GenerationPreviewContent() {
                   key={step.id}
                   className={cn(
                     'h-1.5 rounded-full transition-all duration-500',
-                    idx < currentStepIndex
+                    stepStates[step.id]?.status === 'done' || idx < currentStepIndex
                       ? 'w-1.5 bg-blue-500/30'
+                      : stepStates[step.id]?.status === 'failed'
+                        ? 'w-8 bg-red-500'
+                        : stepStates[step.id]?.status === 'retrying'
+                          ? 'w-8 bg-amber-500'
                       : idx === currentStepIndex
                         ? 'w-8 bg-blue-500'
                         : 'w-1.5 bg-muted/50',
@@ -1364,6 +1368,12 @@ function GenerationPreviewContent() {
                 />
               ))}
             </div>
+
+            {error && activeStep && (
+              <div className="mx-auto max-w-2xl rounded-md border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-300">
+                {t('generation.generationFailed')}: {error}
+              </div>
+            )}
 
             {/* Central Content */}
             <div className="flex-1 flex flex-col items-center justify-center w-full space-y-8 mt-4">
