@@ -1182,6 +1182,35 @@ function GenerationPreviewContent() {
     router.push('/');
   };
 
+  const retryFailedStep = () => {
+    if (!session) return;
+    const failed = activeSteps.find((step) => stepStates[step.id]?.status === 'failed');
+    if (!failed) return;
+    const reset: GenerationSessionState = { ...session, previewStepStates: undefined };
+    if (failed.id === 'pdf-analysis') {
+      reset.pdfText = '';
+      reset.pdfImages = undefined;
+      reset.imageStorageIds = undefined;
+    } else if (failed.id === 'web-search') {
+      reset.researchContext = undefined;
+      reset.researchSources = undefined;
+    } else if (failed.id === 'outline') {
+      reset.sceneOutlines = undefined;
+      reset.languageDirective = undefined;
+      reset.courseTitle = undefined;
+    } else if (failed.id === 'agent-generation') {
+      reset.generatedAgents = undefined;
+    } else if (failed.id === 'slide-content') {
+      reset.generatedFirstSceneContent = undefined;
+      reset.generatedFirstScene = undefined;
+    } else if (failed.id === 'actions') {
+      reset.generatedFirstScene = undefined;
+    }
+    persistSession(reset);
+    hasStartedRef.current = true;
+    void startGeneration(reset);
+  };
+
   // Triggered when the user clicks the streaming outline card mid-stream.
   // SSE keeps running; only the surface morph + intent flag change.
   const handleExpandStreamingOutline = () => {
@@ -1639,7 +1668,7 @@ function GenerationPreviewContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-xs"
               >
-                <Button size="lg" variant="outline" className="w-full h-12" onClick={goBackToHome}>
+                <Button size="lg" variant="outline" className="w-full h-12" onClick={retryFailedStep}>
                   {t('generation.goBackAndRetry')}
                 </Button>
               </motion.div>
