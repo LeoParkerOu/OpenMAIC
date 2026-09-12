@@ -126,6 +126,21 @@ function GenerationPreviewContent() {
       ...states,
       [stepId]: { ...states[stepId], ...patch },
     }));
+  const activateStep = (steps: typeof ALL_STEPS, index: number) => {
+    const next = steps[index];
+    if (!next) return;
+    setStepStates((states) => {
+      const previous = steps[Math.max(0, index - 1)];
+      return {
+        ...states,
+        ...(previous && states[previous.id]?.status === 'running'
+          ? { [previous.id]: { ...states[previous.id], status: 'done' as const } }
+          : {}),
+        [next.id]: { ...states[next.id], status: 'running' as const },
+      };
+    });
+    setCurrentStepIndex(index);
+  };
   const [isComplete] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [streamingOutlines, setStreamingOutlines] = useState<SceneOutline[] | null>(null);
@@ -487,7 +502,7 @@ function GenerationPreviewContent() {
       const webSearchStepIdx = activeSteps.findIndex((s) => s.id === 'web-search');
       if (currentSession.requirements.webSearch && webSearchStepIdx >= 0) {
         updateStepState('web-search', { status: 'running', attempt: stepStates['web-search'].attempt + 1, error: undefined });
-        setCurrentStepIndex(webSearchStepIdx);
+        activateStep(activeSteps, webSearchStepIdx);
         setWebSearchSources([]);
 
         const wsSettings = useSettingsStore.getState();
@@ -579,7 +594,7 @@ function GenerationPreviewContent() {
       let courseTitle = currentSession.courseTitle;
 
       const outlineStepIdx = activeSteps.findIndex((s) => s.id === 'outline');
-      setCurrentStepIndex(outlineStepIdx >= 0 ? outlineStepIdx : 0);
+      activateStep(activeSteps, outlineStepIdx >= 0 ? outlineStepIdx : 0);
       if (!outlines || outlines.length === 0) {
         log.debug('=== Generating outlines (SSE) ===');
         setStreamingOutlines([]);
@@ -773,7 +788,7 @@ function GenerationPreviewContent() {
 
       if (settings.agentMode === 'auto') {
         const agentStepIdx = activeSteps.findIndex((s) => s.id === 'agent-generation');
-        if (agentStepIdx >= 0) setCurrentStepIndex(agentStepIdx);
+        if (agentStepIdx >= 0) activateStep(activeSteps, agentStepIdx);
 
         try {
           const allAvatars = [
@@ -976,7 +991,7 @@ function GenerationPreviewContent() {
 
       // Advance to slide-content step
       const contentStepIdx = activeSteps.findIndex((s) => s.id === 'slide-content');
-      if (contentStepIdx >= 0) setCurrentStepIndex(contentStepIdx);
+      if (contentStepIdx >= 0) activateStep(activeSteps, contentStepIdx);
 
       // Build stageInfo and userProfile for API call
       const stageInfo = {
@@ -1018,7 +1033,7 @@ function GenerationPreviewContent() {
 
       // Generate actions (activate actions step indicator)
       const actionsStepIdx = activeSteps.findIndex((s) => s.id === 'actions');
-      setCurrentStepIndex(actionsStepIdx >= 0 ? actionsStepIdx : currentStepIndex + 1);
+      activateStep(activeSteps, actionsStepIdx >= 0 ? actionsStepIdx : currentStepIndex + 1);
 
       const data = await fetchSceneActions(
         {
