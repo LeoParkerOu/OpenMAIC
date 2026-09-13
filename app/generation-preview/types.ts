@@ -61,7 +61,10 @@ export type GenerationStepState = {
 
 export type GenerationStepStates = Record<string, GenerationStepState>;
 
-export function createGenerationStepStates(steps: GenerationStep[], maxAttempts = 3): GenerationStepStates {
+export function createGenerationStepStates(
+  steps: GenerationStep[],
+  maxAttempts = 3,
+): GenerationStepStates {
   return Object.fromEntries(
     steps.map((step) => [step.id, { status: 'idle', attempt: 0, maxAttempts }]),
   );

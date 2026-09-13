@@ -362,7 +362,14 @@ function GenerationPreviewContent() {
 
       // Step 0: Extract uploaded course material if needed
       if (hasPdfToAnalyze) {
-        setStepStates((s) => ({ ...s, 'pdf-analysis': { ...s['pdf-analysis'], status: 'running', attempt: s['pdf-analysis'].attempt + 1 } }));
+        setStepStates((s) => ({
+          ...s,
+          'pdf-analysis': {
+            ...s['pdf-analysis'],
+            status: 'running',
+            attempt: s['pdf-analysis'].attempt + 1,
+          },
+        }));
         log.debug('=== Generation Preview: Extracting course material bundle ===');
         validateDocumentSources(documentSources, t);
         const sortedDocumentSources = [...documentSources].sort((a, b) => a.order - b.order);
@@ -501,42 +508,57 @@ function GenerationPreviewContent() {
       // Step: Web Search (if enabled)
       const webSearchStepIdx = activeSteps.findIndex((s) => s.id === 'web-search');
       if (currentSession.requirements.webSearch && webSearchStepIdx >= 0) {
-        updateStepState('web-search', { status: 'running', attempt: stepStates['web-search'].attempt + 1, error: undefined });
+        updateStepState('web-search', {
+          status: 'running',
+          attempt: stepStates['web-search'].attempt + 1,
+          error: undefined,
+        });
         activateStep(activeSteps, webSearchStepIdx);
         setWebSearchSources([]);
 
         const wsSettings = useSettingsStore.getState();
         const wsProviderId = wsSettings.webSearchProviderId;
         const wsConfig = wsSettings.webSearchProvidersConfig?.[wsProviderId];
-        const res = await withRetry(async () => {
-          const response = await fetch('/api/web-search', {
-          method: 'POST',
-          headers: getApiHeaders(),
-          body: JSON.stringify(
-            withThinkingConfig({
-              query: currentSession.requirements.requirement,
-              pdfText: currentSession.pdfText || undefined,
-              providerId: wsProviderId,
-              apiKey: wsConfig?.apiKey || undefined,
-              baseUrl: wsProviderId === 'searxng' ? undefined : wsConfig?.baseUrl || undefined,
-              baiduSubSources: wsProviderId === 'baidu' ? wsSettings.baiduSubSources : undefined,
-              claudeModelId: wsProviderId === 'claude' ? wsConfig?.modelId || undefined : undefined,
-            }),
-          ),
-          signal,
-          });
-          if (!response.ok && (response.status === 429 || response.status >= 500)) {
-            throw Object.assign(new Error(`Web search temporary failure (${response.status})`), { status: response.status });
-          }
-          return response;
-        }, {
-          signal,
-          maxRetries: 2,
-          shouldRetry: (failure) => {
-            if (isAbortError(failure)) return false;
-            return failure instanceof TypeError || (failure as { status?: number })?.status === 429 || ((failure as { status?: number })?.status ?? 0) >= 500;
+        const res = await withRetry(
+          async () => {
+            const response = await fetch('/api/web-search', {
+              method: 'POST',
+              headers: getApiHeaders(),
+              body: JSON.stringify(
+                withThinkingConfig({
+                  query: currentSession.requirements.requirement,
+                  pdfText: currentSession.pdfText || undefined,
+                  providerId: wsProviderId,
+                  apiKey: wsConfig?.apiKey || undefined,
+                  baseUrl: wsProviderId === 'searxng' ? undefined : wsConfig?.baseUrl || undefined,
+                  baiduSubSources:
+                    wsProviderId === 'baidu' ? wsSettings.baiduSubSources : undefined,
+                  claudeModelId:
+                    wsProviderId === 'claude' ? wsConfig?.modelId || undefined : undefined,
+                }),
+              ),
+              signal,
+            });
+            if (!response.ok && (response.status === 429 || response.status >= 500)) {
+              throw Object.assign(new Error(`Web search temporary failure (${response.status})`), {
+                status: response.status,
+              });
+            }
+            return response;
           },
-        });
+          {
+            signal,
+            maxRetries: 2,
+            shouldRetry: (failure) => {
+              if (isAbortError(failure)) return false;
+              return (
+                failure instanceof TypeError ||
+                (failure as { status?: number })?.status === 429 ||
+                ((failure as { status?: number })?.status ?? 0) >= 500
+              );
+            },
+          },
+        );
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({ error: 'Web search failed' }));
@@ -1105,7 +1127,16 @@ function GenerationPreviewContent() {
       sessionStorage.removeItem('generationSession');
       setStepStates((s) => {
         const step = activeSteps[Math.min(currentStepIndex, activeSteps.length - 1)];
-        return step ? { ...s, [step.id]: { ...s[step.id], status: 'failed', error: err instanceof Error ? err.message : String(err) } } : s;
+        return step
+          ? {
+              ...s,
+              [step.id]: {
+                ...s[step.id],
+                status: 'failed',
+                error: err instanceof Error ? err.message : String(err),
+              },
+            }
+          : s;
       });
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -1398,9 +1429,9 @@ function GenerationPreviewContent() {
                         ? 'w-8 bg-red-500'
                         : stepStates[step.id]?.status === 'retrying'
                           ? 'w-8 bg-amber-500'
-                      : idx === currentStepIndex
-                        ? 'w-8 bg-blue-500'
-                        : 'w-1.5 bg-muted/50',
+                          : idx === currentStepIndex
+                            ? 'w-8 bg-blue-500'
+                            : 'w-1.5 bg-muted/50',
                   )}
                 />
               ))}
@@ -1489,10 +1520,25 @@ function GenerationPreviewContent() {
                     const state = stepStates[step.id];
                     if (!state || state.status === 'idle') return null;
                     return (
-                      <div key={step.id} className="flex items-center justify-between rounded px-2 py-1 text-xs text-muted-foreground">
+                      <div
+                        key={step.id}
+                        className="flex items-center justify-between rounded px-2 py-1 text-xs text-muted-foreground"
+                      >
                         <span>{t(step.title)}</span>
-                        <span className={state.status === 'failed' ? 'text-red-500' : state.status === 'retrying' ? 'text-amber-500' : 'text-muted-foreground'}>
-                          {state.status === 'failed' ? state.error : state.status === 'retrying' ? `Retry ${state.attempt}/${state.maxAttempts}` : state.status}
+                        <span
+                          className={
+                            state.status === 'failed'
+                              ? 'text-red-500'
+                              : state.status === 'retrying'
+                                ? 'text-amber-500'
+                                : 'text-muted-foreground'
+                          }
+                        >
+                          {state.status === 'failed'
+                            ? state.error
+                            : state.status === 'retrying'
+                              ? `Retry ${state.attempt}/${state.maxAttempts}`
+                              : state.status}
                         </span>
                       </div>
                     );
