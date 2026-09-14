@@ -173,7 +173,11 @@ describe('classroom surfaces feed the sidecar into the gate', () => {
       expect(source).toContain('classroomGenerationOwnership(result)');
       expect(source).toContain('noteStageGenerationOwnership');
       // Reset on course switch, so a previous course's answer never carries over.
-      expect(source).toContain("noteStageGenerationOwnership(classroomId, 'unresolved')");
+      const session = readFileSync(
+        join(process.cwd(), 'lib/classroom/use-classroom-session.ts'),
+        'utf8',
+      );
+      expect(session).toContain("noteStageGenerationOwnership(classroomId, 'unresolved')");
       // The resume effect re-runs when the answer lands.
       expect(source).toMatch(/\}, \[loading, error, mayGenerate, generateRemaining\]\);/);
       // An unresolved answer is asked again rather than accepted for the load:
@@ -222,13 +226,12 @@ describe('classroom surfaces feed the sidecar into the gate', () => {
   });
 
   it('clears parked media allocations when a course is (re)opened', () => {
-    for (const path of [
-      'app/classroom/[id]/page.tsx',
-      'components/classroom/ClassroomSurface.tsx',
-    ]) {
-      const source = readFileSync(join(process.cwd(), path), 'utf8');
-      expect(source).toContain('clearPendingMediaAllocations(classroomId)');
-    }
+    const source = readFileSync(
+      join(process.cwd(), 'lib/classroom/use-classroom-session.ts'),
+      'utf8',
+    );
+    expect(source).toContain('clearPendingMediaAllocations(classroomId)');
+    expect(source).toContain('clearNarrationAllocations(classroomId)');
   });
 
   // Listening back to narration and seeing whether a line has any spend nothing,
