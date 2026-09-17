@@ -781,12 +781,13 @@ async function generateAzureTTS(
   signal: AbortSignal,
 ): Promise<TTSGenerationResult> {
   const baseUrl = config.baseUrl || TTS_PROVIDERS['azure-tts'].defaultBaseUrl;
+  const voiceLocale = resolveAzureVoiceLocale(config.voice);
 
   // Build SSML
   const rate = config.speed ? `${((config.speed - 1) * 100).toFixed(0)}%` : '0%';
   const ssml = `
-    <speak version='1.0' xml:lang='zh-CN'>
-      <voice xml:lang='zh-CN' name='${config.voice}'>
+    <speak version='1.0' xml:lang='${voiceLocale}'>
+      <voice xml:lang='${voiceLocale}' name='${config.voice}'>
         <prosody rate='${rate}'>${escapeXml(text)}</prosody>
       </voice>
     </speak>
@@ -809,6 +810,17 @@ async function generateAzureTTS(
   }
 
   return await validateTTSAudioResponse(response, 'Azure', 'mp3');
+}
+
+/** Resolve the BCP-47 locale encoded by an Azure voice identifier. */
+function resolveAzureVoiceLocale(voice: string): string {
+  const configuredVoice = TTS_PROVIDERS['azure-tts'].voices.find(({ id }) => id === voice);
+  if (configuredVoice?.language) return configuredVoice.language;
+
+  // Azure voice IDs conventionally start with a locale (for example,
+  // `en-US-JennyNeural`). Keep this fallback for custom Azure voices while
+  // retaining the existing Chinese default for an unrecognised identifier.
+  return voice.match(/^[a-z]{2,3}-[A-Z]{2,3}(?=-|$)/)?.[0] ?? 'zh-CN';
 }
 
 /**
