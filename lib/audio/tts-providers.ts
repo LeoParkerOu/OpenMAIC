@@ -817,10 +817,15 @@ function resolveAzureVoiceLocale(voice: string): string {
   const configuredVoice = TTS_PROVIDERS['azure-tts'].voices.find(({ id }) => id === voice);
   if (configuredVoice?.language) return configuredVoice.language;
 
-  // Azure voice IDs conventionally start with a locale (for example,
-  // `en-US-JennyNeural`). Keep this fallback for custom Azure voices while
-  // retaining the existing Chinese default for an unrecognised identifier.
-  return voice.match(/^[a-z]{2,3}-[A-Z]{2,3}(?=-|$)/)?.[0] ?? 'zh-CN';
+  // Azure voice IDs conventionally start with a BCP-47 locale (for example,
+  // `en-US-JennyNeural` or `sr-Latn-RS-SophieNeural`). Preserve optional
+  // script and variant subtags for voices outside the small configured list
+  // while retaining the existing Chinese default for an unrecognised ID.
+  return (
+    voice.match(
+      /^[a-z]{2,3}(?:-[A-Z][a-z]{3})?-(?:[A-Z]{2}|\d{3})(?:-(?:[a-z0-9]{5,8}|\d[a-z0-9]{3}))*(?=-[A-Z]|$)/,
+    )?.[0] ?? 'zh-CN'
+  );
 }
 
 /**

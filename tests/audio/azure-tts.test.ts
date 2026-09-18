@@ -70,4 +70,23 @@ describe('Azure TTS SSML locale', () => {
     const ssml = mockFetch.mock.calls[0][1].body as string;
     expect(ssml).toContain("xml:lang='fr-FR'");
   });
+
+  it.each([
+    ['sr-Latn-RS-SophieNeural', 'sr-Latn-RS'],
+    ['iu-Cans-CA-SiqiniqNeural', 'iu-Cans-CA'],
+  ])('preserves the script subtag for %s', async (voice, locale) => {
+    await generateTTS(
+      {
+        providerId: 'azure-tts',
+        apiKey: 'azure-key',
+        baseUrl: 'https://eastus.tts.speech.microsoft.com',
+        voice,
+      },
+      'Hello',
+    );
+
+    const ssml = mockFetch.mock.calls[0][1].body as string;
+    expect(ssml).toContain(`<speak version='1.0' xml:lang='${locale}'>`);
+    expect(ssml).toContain(`<voice xml:lang='${locale}' name='${voice}'>`);
+  });
 });
