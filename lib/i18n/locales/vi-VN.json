@@ -1274,6 +1274,7 @@
       "xiaomiTokenPlanEU": "Gói token châu Âu"
     },
     "requestUrl": "Địa chỉ yêu cầu",
+    "ttsRequestPath": "Đường dẫn yêu cầu",
     "models": "Các model",
     "comfyuiWorkflows": "Luồng công việc",
     "comfyuiRefresh": "Tải lại",

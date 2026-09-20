@@ -34,7 +34,7 @@ import {
   resolveTTSModelForVoice,
   getManuallySelectableTTSModels,
 } from '@/lib/audio/constants';
-import type { TTSProviderId } from '@/lib/audio/types';
+import { normalizeTTSRequestPath, type TTSProviderId } from '@/lib/audio/types';
 import {
   Volume2,
   Loader2,
@@ -182,7 +182,7 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
               ...(ttsProvidersConfig[selectedProviderId]?.providerOptions || {}),
               ...(await getVoxCPMProviderOptions(effectiveVoice, { role: 'teacher', locale })),
             }
-          : undefined;
+          : ttsProvidersConfig[selectedProviderId]?.providerOptions;
       await startPreview({
         text: testText,
         providerId: selectedProviderId,
@@ -220,7 +220,9 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
     (isCustom ? providerConfig?.customDefaultBaseUrl : ttsProvider?.defaultBaseUrl) ||
     '';
   const endpointPath = (() => {
-    if (isCustom) return '/audio/speech';
+    if (isCustom) {
+      return normalizeTTSRequestPath(providerConfig?.providerOptions?.endpointPath);
+    }
     switch (selectedProviderId) {
       case 'openai-tts':
       case 'glm-tts':
@@ -244,7 +246,7 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
     effectiveBaseUrl && endpointPath
       ? selectedProviderId === 'voxcpm-tts'
         ? buildVoxCPMBackendUrl(effectiveBaseUrl, voxcpmBackend)
-        : effectiveBaseUrl + endpointPath
+        : effectiveBaseUrl.replace(/\/+$/, '') + endpointPath
       : '';
   const isVoxCPMVLLMOmni = voxcpmBackend === 'vllm-omni';
 
@@ -505,6 +507,33 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
                   className="text-sm"
                 />
               </div>
+              {isCustom && (
+                <div className="col-span-2 space-y-2">
+                  <Label className="text-sm">{t('settings.ttsRequestPath')}</Label>
+                  <Input
+                    name={`tts-request-path-${selectedProviderId}`}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder="/audio/speech"
+                    value={
+                      (ttsProvidersConfig[selectedProviderId]?.providerOptions?.endpointPath as
+                        | string
+                        | undefined) || ''
+                    }
+                    onChange={(e) =>
+                      setTTSProviderConfig(selectedProviderId, {
+                        providerOptions: {
+                          ...(providerConfig?.providerOptions || {}),
+                          endpointPath: e.target.value,
+                        },
+                      })
+                    }
+                    className="font-mono text-sm"
+                  />
+                </div>
+              )}
             </div>
             {requestUrl && (
               <p className="break-all text-xs text-muted-foreground">

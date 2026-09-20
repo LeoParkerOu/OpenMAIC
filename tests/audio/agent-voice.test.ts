@@ -85,4 +85,14 @@ describe('resolveAgentVoiceOptions — voice-design source', () => {
     await resolveAgentVoiceOptions(agent({ role: 'teacher', persona: '' }), opts);
     expect(mockGetOptions.mock.calls[0][1].voiceDesign).toBeUndefined();
   });
+
+  it('preserves provider options for non-VoxCPM providers', async () => {
+    await expect(
+      resolveAgentVoiceOptions(agent({ role: 'teacher' }), {
+        providerId: 'custom-tts-gateway',
+        voiceId: 'alloy',
+        providerConfig: { providerOptions: { endpointPath: '/tenant/speech' } },
+      }),
+    ).resolves.toEqual({ endpointPath: '/tenant/speech' });
+  });
 });

@@ -1274,6 +1274,7 @@
       "xiaomiTokenPlanEU": "토큰 플랜 EU"
     },
     "requestUrl": "요청 URL",
+    "ttsRequestPath": "요청 경로",
     "models": "모델",
     "comfyuiWorkflows": "워크플로",
     "comfyuiRefresh": "새로고침",

@@ -231,6 +231,19 @@ export function isCustomTTSProvider(id: string): boolean {
   return typeof id === 'string' && id.startsWith('custom-tts-');
 }
 
+/**
+ * Normalize the request path used by OpenAI-compatible custom TTS providers.
+ * Keep it relative to the configured base URL so a provider option cannot turn
+ * the request into an absolute URL or an origin-relative request.
+ */
+export function normalizeTTSRequestPath(value: unknown): string {
+  if (typeof value !== 'string') return '/audio/speech';
+  const path = value.trim();
+  if (!path || path === '/') return '/audio/speech';
+  if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(path)) return '/audio/speech';
+  return `/${path.replace(/^\/+/, '')}`;
+}
+
 /** Returns true if the provider ID is a user-defined custom ASR provider. */
 export function isCustomASRProvider(id: string): boolean {
   return typeof id === 'string' && id.startsWith('custom-asr-');

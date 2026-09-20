@@ -93,7 +93,7 @@
  */
 
 import type { TTSModelConfig } from './types';
-import { isCustomTTSProvider } from './types';
+import { isCustomTTSProvider, normalizeTTSRequestPath } from './types';
 import { isQwenCloneVoice, resolveTTSModelForVoice, TTS_PROVIDERS } from './constants';
 import { downloadAudio, QwenVoiceCloneError, synthesizeQwenVoiceClone } from './qwen-voice-clone';
 import { evictQwenVoiceRegistrationMemo } from './qwen-voice-clone-registration';
@@ -316,10 +316,14 @@ async function generateOpenAITTS(
   text: string,
   signal: AbortSignal,
 ): Promise<TTSGenerationResult> {
-  const baseUrl = config.baseUrl || TTS_PROVIDERS['openai-tts'].defaultBaseUrl;
+  const baseUrl = (config.baseUrl || TTS_PROVIDERS['openai-tts'].defaultBaseUrl || '').replace(
+    /\/+$/,
+    '',
+  );
+  const endpointPath = normalizeTTSRequestPath(config.providerOptions?.endpointPath);
 
   // Use gpt-4o-mini-tts for best quality and intelligent realtime applications
-  const response = await ttsFetch(config.publicOnly, `${baseUrl}/audio/speech`, {
+  const response = await ttsFetch(config.publicOnly, `${baseUrl}${endpointPath}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${config.apiKey}`,

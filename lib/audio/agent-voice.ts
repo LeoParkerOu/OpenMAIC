@@ -76,9 +76,12 @@ export async function resolveAgentVoiceOptions(
   agent: AgentConfig | undefined,
   opts: AgentVoiceResolveOptions,
 ): Promise<Record<string, unknown> | undefined> {
-  if (opts.providerId !== VOXCPM_TTS_PROVIDER_ID) return undefined;
+  const providerOptions = opts.providerConfig?.providerOptions || {};
+  if (opts.providerId !== VOXCPM_TTS_PROVIDER_ID) {
+    return Object.keys(providerOptions).length > 0 ? { ...providerOptions } : undefined;
+  }
   return {
-    ...(opts.providerConfig?.providerOptions || {}),
+    ...providerOptions,
     ...(await getVoxCPMProviderOptions(
       opts.voiceId,
       {
