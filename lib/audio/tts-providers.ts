@@ -320,7 +320,9 @@ async function generateOpenAITTS(
     /\/+$/,
     '',
   );
-  const endpointPath = normalizeTTSRequestPath(config.providerOptions?.endpointPath);
+  const endpointPath = isCustomTTSProvider(config.providerId)
+    ? normalizeTTSRequestPath(config.providerOptions?.endpointPath)
+    : '/audio/speech';
 
   // Use gpt-4o-mini-tts for best quality and intelligent realtime applications
   const response = await ttsFetch(config.publicOnly, `${baseUrl}${endpointPath}`, {

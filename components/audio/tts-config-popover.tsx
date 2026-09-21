@@ -113,7 +113,7 @@ export function TtsConfigPopover() {
               ...(providerConfig?.providerOptions || {}),
               ...(await getVoxCPMProviderOptions(ttsVoice, { role: 'teacher', locale })),
             }
-          : undefined;
+          : providerConfig?.providerOptions;
       await startPreview({
         text: t('settings.ttsTestTextDefault'),
         providerId: ttsProviderId,

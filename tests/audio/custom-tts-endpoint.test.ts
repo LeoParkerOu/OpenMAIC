@@ -59,4 +59,22 @@ describe('custom OpenAI-compatible TTS endpoint', () => {
     expect(mockFetch.mock.calls[0][0]).toBe('https://gateway.example/v1/audio/speech');
     expect(mockFetch.mock.calls[1][0]).toBe('https://gateway.example/v1/audio/speech');
   });
+
+  it('keeps built-in OpenAI on its standard path', async () => {
+    await generateTTS(
+      {
+        providerId: 'openai-tts',
+        apiKey: 'sk-test',
+        baseUrl: 'https://api.openai.com/v1',
+        voice: 'alloy',
+        providerOptions: { endpointPath: '/tenant/speech' },
+      },
+      'Hello',
+    );
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.openai.com/v1/audio/speech',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
 });
